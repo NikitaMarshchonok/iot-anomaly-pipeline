@@ -1,2 +1,8 @@
 kafka-python==2.0.2
 kafka-python==2.0.2
+fastapi
+uvicorn
+redis
+tensorflow==2.18.0
+joblib
+numpy

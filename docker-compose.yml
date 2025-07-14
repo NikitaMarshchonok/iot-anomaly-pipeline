@@ -3,35 +3,37 @@ version: "3.9"
 services:
   zookeeper:
     image: confluentinc/cp-zookeeper:7.6.0
-    ports:
-      - "2181:2181"
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
+    ports:
+      - "2181:2181"
 
   kafka:
     image: confluentinc/cp-kafka:7.6.0
     depends_on:
       - zookeeper
-    ports:
-      - "9092:9092"               # наружный порт = внутренний
     environment:
       KAFKA_BROKER_ID: 1
-
-      # ——— связь с Zookeeper ———
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-
-      # ——— listeners ———
-      # брокер физически слушает на 0.0.0.0:9092 внутри контейнера
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
-      # клиентам (в т.ч. вашим скриптам на хосте) он «рекламирует» localhost:9092
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
-
-      # обязательные параметры-спутники
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    ports:
+      - "9092:9092"
 
   redis:
     image: redis:7-alpine
     ports:
       - "6379:6379"
+
+  api:
+    build:
+      context: .
+      dockerfile: src/serving/Dockerfile
+    depends_on:
+      - kafka
+      - redis
+    ports:
+      - "8000:8000"
